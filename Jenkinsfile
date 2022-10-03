@@ -1,7 +1,11 @@
-
-#COMMENT1
-#Update check
-#Update2
-#test1 removed
-
-
+pipeline {
+agent any
+stages {
+    stage('Update-Public-github') {
+        steps {
+          checkout scm
+          sh git.sh
+            }
+        }
+    }
+  }
