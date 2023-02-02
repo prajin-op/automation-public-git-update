@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+    stages {
+        stage("Clone repository") {
+            steps {
+                git branch: "new-branch",
+                url: "https://github.com/user/repo-to-push-to.git"
+            }
+        }
+        stage("Push changes") {
+            steps {
+                git branch: "new-branch",
+                url: "https://github.com/user/repo-to-push-to.git",
+                credentialsId: "github-credentials",
+                push: true
+            }
+        }
+        stage("Create PR") {
+            steps {
+                script {
+                    // Set the environment variables for the repository and the access token
+                    env.REPO_OWNER = "user"
+                    env.REPO_NAME = "repo-to-push-to"
+                    env.ACCESS_TOKEN = credentials("github-access-token")
+
+                    // Define the request headers
+                    def headers = [
+                        "Authorization": "Token ${env.ACCESS_TOKEN}",
+                        "Accept": "application/vnd.github+json"
+                    ]
+
+                    // Define the request data for the pull request
+                    def data = """
+                    {
+                        "title": "New branch created",
+                        "head": "new-branch",
+                        "base": "master",
+                        "body": "This is a new branch created from Jenkinsfile script."
+                    }
+                    """
+
+                    // Send the request to create the pull request
+                    httpRequest url: "https://api.github.com/repos/${env.REPO_OWNER}/${env.REPO_NAME}/pulls",
+                        method: "POST",
+                        headers: headers,
+                        requestBody: data
+                }
+            }
+        }
+    }
+}
