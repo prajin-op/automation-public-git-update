@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+
+    environment {
+        SOURCE_REPO_CREDS = credentials('<source_repo_credentials_id>')
+        TARGET_REPO_CREDS = credentials('<target_repo_credentials_id>')
+    }
+
+    stages {
+        stage('Clone source repository') {
+            steps {
+                git branch: 'master', credentialsId: SOURCE_REPO_CREDS, url: 'https://github.com/<source_repo>.git'
+            }
+        }
+
+        stage('Exclude files and directories') {
+            steps {
+                script {
+                    def excludedFiles = readFile('.jenkinsignore').split('\n')
+                    excludedFiles.each { file ->
+                        sh "git rm -r --cached $file"
+                    }
+                }
+                sh 'git commit -m "Public GitHub updates"'
+            }
+        }
+
+        stage('Create pull request branch') {
+            steps {
+                sh 'git checkout -b pr-branch'
+                git branch: 'pr-branch', credentialsId: TARGET_REPO_CREDS, url: 'https://github.com/<target_repo>.git'
+                sh 'git push -u origin pr-branch'
+            }
+        }
+
+        stage('Create pull request') {
+            steps {
+                script {
+                    def pr = github.createPullRequest(
+                        sourceBranch: 'pr-branch',
+                        targetBranch: 'master',
+                        title: 'Public GitHub updates',
+                        body: 'This pull request contains updates from the public GitHub repository.'
+                    )
+                }
+            }
+        }
+    }
+}
