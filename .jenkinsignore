@@ -2,3 +2,4 @@ gitupdate.sh
 README.md
 .gitignore
 Jenkinsfile
+.jenkinsignore
