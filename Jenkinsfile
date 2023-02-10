@@ -29,12 +29,13 @@ pipeline {
             steps {
                 script {
                     
-                    sh 'git checkout -b pr-branch'
-                    git branch: 'pr-branch', credentialsId: TARGET_REPO_CREDS, url: 'https://github.com/prajin-op/automation-public-git-update.git'
-                    sh 'git push -u origin pr-branch'
-                    sh 'git checkout pr-branch'
+                    def branchName = "update-${new Date().format("yyyyMMdd-HHmmss")}"
+                    sh "git checkout -b ${branchName}"
+                    git branch: '${branchName}', credentialsId: TARGET_REPO_CREDS, url: 'https://github.com/prajin-op/automation-public-git-update.git'
+                    sh 'git push -u origin ${branchName}'
+                    sh 'git checkout ${branchName}'
                     sh 'git reset --hard target/main'
-                    sh 'git push -f origin pr-branch'
+                    sh 'git push -f origin ${branchName}'
                     
                 }
             }
@@ -44,7 +45,7 @@ pipeline {
             steps {
                 script {
                     def pr = github.createPullRequest(
-                        sourceBranch: 'pr-branch',
+                        sourceBranch: '${branchName}',
                         targetBranch: 'main',
                         title: 'Public GitHub updates',
                         body: 'This pull request contains updates from the public GitHub repository.'
