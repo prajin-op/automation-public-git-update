@@ -30,17 +30,13 @@ pipeline {
                 script {
                     sh 'git remote add target https://github.com/prajin-op/automation-public-git-update.git'
                     sh 'git fetch target'
-
-                    def branchExists = sh(returnStatus: true, script: 'git rev-parse --verify target/main') != 0
-                    if (!branchExists) {
-                        sh 'git checkout -b pr-branch'
-                        git branch: 'pr-branch', credentialsId: TARGET_REPO_CREDS, url: 'https://github.com/prajin-op/automation-public-git-update.git'
-                        sh 'git push -u origin pr-branch'
-                    } else {
-                        sh 'git checkout pr-branch'
-                        sh 'git reset --hard target/main'
-                        sh 'git push -f origin pr-branch'
-                    }
+                    sh 'git checkout -b pr-branch'
+                    git branch: 'pr-branch', credentialsId: TARGET_REPO_CREDS, url: 'https://github.com/prajin-op/automation-public-git-update.git'
+                    sh 'git push -u origin pr-branch'
+                    sh 'git checkout pr-branch'
+                    sh 'git reset --hard target/main'
+                    sh 'git push -f origin pr-branch'
+                    
                 }
             }
         }
