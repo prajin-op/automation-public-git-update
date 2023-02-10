@@ -28,8 +28,7 @@ pipeline {
         stage('Compare repositories') {
             steps {
                 script {
-                    sh 'git remote add target https://github.com/prajin-op/automation-public-git-update.git'
-                    sh 'git fetch target'
+                    
                     sh 'git checkout -b pr-branch'
                     git branch: 'pr-branch', credentialsId: TARGET_REPO_CREDS, url: 'https://github.com/prajin-op/automation-public-git-update.git'
                     sh 'git push -u origin pr-branch'
