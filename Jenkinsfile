@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SOURCE_REPO_CREDS = credentials('i572426-tools')
+        SOURCE_REPO_CREDS = credentials('i572426-prajin')
         TARGET_REPO_CREDS = credentials('prajinexternal')
     }
 
