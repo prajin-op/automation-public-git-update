@@ -3,47 +3,35 @@ pipeline {
     stages {
         stage("Clone repository") {
             steps {
-                git branch: "new-branch",
-                url: "https://github.com/user/repo-to-push-to.git"
+                git url: 'https://github.com/user/repo.git', branch: 'master', credentialsId: '<CREDENTIALS_ID>'
+            }
+        }
+        stage("Create branch") {
+            steps {
+                script {
+                    def branchName = "update-${new Date().format("yyyyMMdd-HHmmss")}"
+                    sh "git checkout -b ${branchName}"
+                }
+            }
+        }
+        stage("Make changes") {
+            steps {
+                sh "echo 'Making some changes...'"
+                sh "git add ."
+                sh "git commit -m 'Updating files'"
             }
         }
         stage("Push changes") {
             steps {
-                git branch: "new-branch",
-                url: "https://github.com/user/repo-to-push-to.git",
-                credentialsId: "github-credentials",
-                push: true
+                sh "git push -u origin ${branchName}"
             }
         }
-        stage("Create PR") {
+        stage("Create pull request") {
             steps {
                 script {
-                    // Set the environment variables for the repository and the access token
-                    env.REPO_OWNER = "user"
-                    env.REPO_NAME = "repo-to-push-to"
-                    env.ACCESS_TOKEN = credentials("github-access-token")
-
-                    // Define the request headers
-                    def headers = [
-                        "Authorization": "Token ${env.ACCESS_TOKEN}",
-                        "Accept": "application/vnd.github+json"
-                    ]
-
-                    // Define the request data for the pull request
-                    def data = """
-                    {
-                        "title": "New branch created",
-                        "head": "new-branch",
-                        "base": "master",
-                        "body": "This is a new branch created from Jenkinsfile script."
-                    }
-                    """
-
-                    // Send the request to create the pull request
-                    httpRequest url: "https://api.github.com/repos/${env.REPO_OWNER}/${env.REPO_NAME}/pulls",
-                        method: "POST",
-                        headers: headers,
-                        requestBody: data
+                    def response = sh(returnStdout: true, script: "curl -X POST -H 'Authorization: token <TOKEN>' -d '{\"title\":\"Jenkins pipeline update\",\"head\":\"${branchName}\",\"base\":\"master\"}' https://api.github.com/repos/user/repo/pulls")
+                    def pullRequestId = response.trim().split("\"number\":")[1].split(",")[0]
+                    echo "Created pull request: https://github.com/user/repo/pull/${pullRequestId}"
                 }
             }
         }
