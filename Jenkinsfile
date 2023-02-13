@@ -35,7 +35,8 @@ pipeline {
                     sh "git commit -m 'external repo updates'"
 
                     // Push the changes to the target repository
-                    sh "git push --set-upstream https://github.com/prajin-op/automation-public-git-update.git ${branchName}"
+                    withCredentials([usernamePassword(credentialsId: 'externalp', passwordVariable: 'password', usernameVariable: 'username')]) {
+                sh "git push --set-upstream https://${username}:${password}@https://github.com/prajin-op/automation-public-git-update.git ${branchName}"
                     
                     // Create a pull request
                     def pullRequest = github.createPullRequest(
