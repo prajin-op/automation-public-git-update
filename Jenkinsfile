@@ -4,7 +4,7 @@ pipeline {
     stages {
         stage('Clone Internal repository') {
             steps {
-                git branch: 'master',
+                git branch: 'main',
                     credentialsId: 'i572426-prajin',
                     url: 'https://github.tools.sap/I572426/automation-internal-git.git'
             }
