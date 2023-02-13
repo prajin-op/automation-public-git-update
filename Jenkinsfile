@@ -24,7 +24,6 @@ pipeline {
                     }
                 }
             }
-        }
 
         stage('Create PR') {
             steps {
