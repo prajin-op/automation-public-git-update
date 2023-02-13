@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         SOURCE_REPO_CREDS = credentials('i572426-prajin')
-        TARGET_REPO_CREDS = credentials('prajinexternal')
+        TARGET_REPO_CREDS = credentials('externalp')
     }
 
     stages {
@@ -36,7 +36,6 @@ pipeline {
                     sh 'git checkout ${branchName}'
                     sh 'git reset --hard target/main'
                     sh 'git push -f origin ${branchName}'
-                    
                 }
             }
         }
