@@ -1,0 +1,30 @@
+  stage('Create PR') {
+    steps {
+        script {
+            // Checkout a new branch for the changes
+            sh "git checkout -b exclude-ignored-files"
+
+            // Add the changes to the branch
+            sh "git add ."
+
+            // Commit the changes
+            sh "git commit -m 'Exclude ignored files'"
+
+            // Push the changes to the target repository
+            sh "git push --set-upstream <target_repo_url> exclude-ignored-files"
+
+            // Create a pull request
+            def pullRequest = github.createPullRequest(
+                head: "exclude-ignored-files",
+                base: "master",
+                title: "Exclude ignored files",
+                body: "This pull request removes the files listed in .jenkinsignore."
+            )
+
+            // Wait for the pull request to be processed
+            while (pullRequest.getMergeable().toString() == "null") {
+                sleep 1
+            }
+        }
+    }
+}
