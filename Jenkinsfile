@@ -36,7 +36,7 @@ pipeline {
 
                     // Push the changes to the target repository
                     withCredentials([usernamePassword(credentialsId: 'externalp', passwordVariable: 'password', usernameVariable: 'username')]) {
-                        sh "git push --set-upstream https://${username}:${password}@https://github.com/prajin-op/automation-public-git-update.git ${branchName}"
+                        sh "git push --set-upstream https://${username}:${password}@github.com/prajin-op/automation-public-git-update.git ${branchName}"
                     }
                     
                     // Create a pull request
