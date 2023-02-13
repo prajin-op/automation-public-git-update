@@ -44,6 +44,7 @@ pipeline {
                     // Create a pull request
                     def pullRequest = github.createPullRequest(
                         head: "${branchName}",
+                        credentialsId: 'externalp',
                         base: "main",
                         title: "External repo updates",
                         body: "Update to public repo"
