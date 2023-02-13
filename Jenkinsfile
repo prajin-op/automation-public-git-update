@@ -18,13 +18,9 @@ pipeline {
 
                     // Split the file into separate lines
                     def lines = jenkinsignore.split('\n')
-
-                    // Remove each file or directory listed in .jenkinsignore
-                    for (int i = 0; i < lines.size(); i++) {
-                        def line = lines[i].trim()
-                        if (!line.isEmpty()) {
-                            sh "rm -rf $line"
-                        }
+                    excludedFiles.each { file ->
+                        sh "git rm -r --cached $file"
+                    }
                     }
                 }
             }
