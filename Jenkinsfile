@@ -20,32 +20,17 @@ pipeline {
                     }
                 }
             }
-
-        stage('Create PR') {
-            steps {
-                script {
-                    def branchName = "update-${new Date().format("yyyyMMdd-HHmmss")}"
-                    // Checkout a new branch for the changes
-                    sh "git checkout -b ${branchName}"
-
-                    // Add the changes to the branch
-                    sh "git add ."
-
-                    // Commit the changes
-                    sh "git commit -m 'external repo updates'"
-
-                    // Push the changes to the target repository
-                    withCredentials([usernamePassword(credentialsId: 'externalp', passwordVariable: 'password', usernameVariable: 'username')]) {
-                        sh "git push --set-upstream https://${username}:${password}@github.com/prajin-op/automation-public-git-update.git ${branchName}"
-                    }
-                }
-            }
-        }
-                    
+                   
          stage("Create Pull Request") {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'externalp', passwordVariable: 'password', usernameVariable: 'username')]) {
+                        def branchName = "update-${new Date().format("yyyyMMdd-HHmmss")}"
+                        // Checkout a new branch for the changes
+                        sh "git checkout -b ${branchName}"
+                        sh "git add ."
+                        sh "git commit -m 'external repo updates'"
+                        sh "git push --set-upstream https://${username}:${password}@github.com/prajin-op/automation-public-git-update.git ${branchName}"
                         def repo_owner = "prajin-op"
                         def repo_name = "automation-public-git-update"
                         def access_token = "${password}"
