@@ -13,11 +13,7 @@ pipeline {
         stage('Remove ignored files') {
             steps {
                 script {
-                    // Read the .jenkinsignore file
-                    def jenkinsignore = readFile('.jenkinsignore')
-
-                    // Split the file into separate lines
-                    def lines = jenkinsignore.split('\n')
+                   def excludedFiles = readFile('.jenkinsignore').split('\n')
                     excludedFiles.each { file ->
                         sh "git rm -r --cached $file"
                     }
