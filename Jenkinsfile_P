@@ -30,17 +30,12 @@ pipeline {
 
         stage("Checkout external repository") {
             steps {
-                checkout([
-                    $class: 'GitSCM',
-                    branches: [[name: '*/master']],
-                    doGenerateSubmoduleConfigurations: false,
-                    extensions: [],
-                    submoduleCfg: [],
-                    userRemoteConfigs: [[
-                        credentialsId: EXTERNAL_REPO_CREDENTIALS,
-                        url: "https://github.com/<OWNER>/$REPO_NAME.git"
-                    ]]
-                ])
+             withCredentials([usernamePassword(credentialsId: 'externalp', passwordVariable: 'password', usernameVariable: 'username')]) {
+             sh "git push --set-upstream https://${username}:${password}@github.com/prajin-op/automation-public-git-update.git ${branchName}"
+             sh "git clone https://${username}:${password}@github.com/prajin-op/automation-public-git-update.git"
+             }
+              
+                
             }
         }
 
