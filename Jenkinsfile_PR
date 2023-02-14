@@ -15,7 +15,7 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/master']],
+                    branches: [[name: '*/main']],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [],
                     submoduleCfg: [],
@@ -31,7 +31,7 @@ pipeline {
             steps {
                 checkout([
                     $class: 'GitSCM',
-                    branches: [[name: '*/master']],
+                    branches: [[name: '*/main']],
                     doGenerateSubmoduleConfigurations: false,
                     extensions: [],
                     submoduleCfg: [],
@@ -59,7 +59,7 @@ pipeline {
                 curl -u $EXTERNAL_REPO_CREDENTIALS:x-oauth-basic \\
                 -H "Content-Type: application/json" \\
                 -X POST \\
-                -d "{\\"title\\": \\"$PR_TITLE\\", \\"head\\": \\"$BRANCH_NAME\\", \\"base\\": \\"master\\", \\"body\\": \\"$PR_BODY\\"}" \\
+                -d "{\\"title\\": \\"$PR_TITLE\\", \\"head\\": \\"$BRANCH_NAME\\", \\"base\\": \\"main\\", \\"body\\": \\"$PR_BODY\\"}" \\
                 https://api.github.com/repos/<OWNER>/$REPO_NAME/pulls
                 """
             }
