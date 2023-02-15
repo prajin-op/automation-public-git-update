@@ -1,0 +1,39 @@
+pipeline {
+  agent any
+  environment {
+    INTERNAL_REPO_URL = 'https://github.com/internal/repo.git'
+    EXTERNAL_REPO_URL = 'https://github.com/external/repo.git'
+    INTERNAL_CREDENTIAL_ID = 'internal-repo-creds'
+    EXTERNAL_CREDENTIAL_ID = 'external-repo-creds'
+  }
+  stages {
+    stage('Clone repositories') {
+      steps {
+        git branch: 'main', credentialsId: "${env.INTERNAL_CREDENTIAL_ID}", url: "${env.INTERNAL_REPO_URL}"
+        git branch: 'main', credentialsId: "${env.EXTERNAL_CREDENTIAL_ID}", url: "${env.EXTERNAL_REPO_URL}"
+      }
+    }
+    stage('Sync internal to external repo') {
+      steps {
+        sh "rsync -avz --exclude-from=${env.WORKSPACE}/.Jenkinsignore ${env.WORKSPACE}/ ${env.EXTERNAL_REPO_URL}"
+      }
+    }
+    stage('Create new branch and push changes') {
+      steps {
+        script {
+          def branchName = "newbranch-${env.BUILD_NUMBER}"
+          sh "git checkout -b ${branchName}"
+          sh "git add . && git commit -m 'Sync internal to external repo' && git push ${env.EXTERNAL_REPO_URL} ${branchName}"
+        }
+      }
+    }
+    stage('Create pull request') {
+      steps {
+        script {
+          def curlCmd = "curl -u USERNAME:TOKEN -X POST -H 'Content-Type: application/json' -d '{\"title\": \"Sync internal to external repo\", \"head\": \"${branchName}\", \"base\": \"main\"}' https://api.github.com/repos/external/repo/pulls"
+          sh curlCmd
+        }
+      }
+    }
+  }
+}
