@@ -1,39 +1,48 @@
 pipeline {
-    agent any
-    stages {
-        stage("Clone repository") {
-            steps {
-                git url: 'https://github.com/user/repo.git', branch: 'master', credentialsId: '<CREDENTIALS_ID>'
-            }
+  agent any
+  
+  environment {
+    INTERNAL_REPO_URL = "https://github.com/your-username/internal-repo.git"
+    EXTERNAL_REPO_URL = "https://github.com/your-username/external-repo.git"
+    INTERNAL_REPO_CREDENTIAL_ID = "internal-repo-credentials"
+    EXTERNAL_REPO_CREDENTIAL_ID = "external-repo-credentials"
+    NEW_BRANCH_NAME = "copy-internal-repo-content-${env.BUILD_ID}-${currentBuild.startTimeInMillis}"
+  }
+  
+  stages {
+    stage('Clone Repos') {
+      steps {
+        // Clone internal repo with credentials
+        withCredentials([usernamePassword(credentialsId: "${INTERNAL_REPO_CREDENTIAL_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh "git clone https://${USERNAME}:${PASSWORD}@${INTERNAL_REPO_URL}"
         }
-        stage("Create branch") {
-            steps {
-                script {
-                    def branchName = "update-${new Date().format("yyyyMMdd-HHmmss")}"
-                    sh "git checkout -b ${branchName}"
-                }
-            }
+        
+        // Clone external repo with credentials
+        withCredentials([usernamePassword(credentialsId: "${EXTERNAL_REPO_CREDENTIAL_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          sh "git clone https://${USERNAME}:${PASSWORD}@${EXTERNAL_REPO_URL}"
         }
-        stage("Make changes") {
-            steps {
-                sh "echo 'Making some changes...'"
-                sh "git add ."
-                sh "git commit -m 'Updating files'"
-            }
-        }
-        stage("Push changes") {
-            steps {
-                sh "git push -u origin ${branchName}"
-            }
-        }
-        stage("Create pull request") {
-            steps {
-                script {
-                    def response = sh(returnStdout: true, script: "curl -X POST -H 'Authorization: token <TOKEN>' -d '{\"title\":\"Jenkins pipeline update\",\"head\":\"${branchName}\",\"base\":\"master\"}' https://api.github.com/repos/user/repo/pulls")
-                    def pullRequestId = response.trim().split("\"number\":")[1].split(",")[0]
-                    echo "Created pull request: https://github.com/user/repo/pull/${pullRequestId}"
-                }
-            }
-        }
+      }
     }
+    
+    stage('Copy Files') {
+      steps {
+        // Copy internal repo content to external repo
+        sh "rsync -avz --exclude='file1' --exclude='dir1/' internal-repo/ external-repo/"
+      }
+    }
+    
+    stage('Create and Push Changes to New Branch') {
+      steps {
+        // Create new branch in external repo with credentials
+        withCredentials([usernamePassword(credentialsId: "${EXTERNAL_REPO_CREDENTIAL_ID}", usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+          dir("external-repo") {
+            sh "git checkout -b ${NEW_BRANCH_NAME}"
+            sh "git add ."
+            sh "git commit -m 'Copy internal repo content'"
+            sh "git push https://${USERNAME}:${PASSWORD}@${EXTERNAL_REPO_URL} ${NEW_BRANCH_NAME}"
+          }
+        }
+      }
+    }
+  }
 }
