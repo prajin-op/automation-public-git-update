@@ -1,0 +1,7 @@
+Jenkinsfile
+Jenkins_Makefile
+Dockerfile
+./tests
+reporting template
+./.github/
+./.vscode/
